@@ -99,7 +99,9 @@
 
 #include <QDebug>
 #include <QUrl>
+#if QT_VERSION >= 0x050000
 #include <QUrlQuery>
+#endif
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkDiskCache>
@@ -3968,12 +3970,19 @@ UniverseView::createBodyDirectionVisualizer(BodyObject* from, BodyObject* target
 QUrl
 UniverseView::getStateUrl()
 {
+
+#if QT_VERSION >= 0x050000
     QUrl url;
+    QUrlQuery query;
 
     url.setScheme("cosmo");
     url.setPath(bodyName(m_observer->center()));
+#else
+    QUrl query;
 
-    QUrlQuery query;
+    query.setScheme("cosmo");
+    query.setPath(bodyName(m_observer->center()));
+#endif
 
     double jd = secondsToDays(m_simulationTime) + vesta::J2000;
     Vector3d position = m_observer->position();
@@ -4037,9 +4046,13 @@ UniverseView::getStateUrl()
     query.addQueryItem("ts", QString::number(ts));
     query.addQueryItem("fov", QString::number(toDegrees(m_fovY)));
 
+#if QT_VERSION >= 0x050000
     url.setQuery(query);
 
     return url;
+#else
+    return query;
+#endif
 }
 
 
@@ -4070,7 +4083,11 @@ UniverseView::setStateFromUrl(const QUrl& url)
     Vector3d position = Vector3d::Zero();
     Quaterniond orientation = Quaterniond::Identity();
 
+#if QT_VERSION >= 0x050000
     QUrlQuery query(url.query());
+#else
+    QUrl query(url);
+#endif
     position.x() = query.queryItemValue("x").toDouble();
     position.y() = query.queryItemValue("y").toDouble();
     position.z() = query.queryItemValue("z").toDouble();
