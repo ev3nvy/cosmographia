@@ -9,6 +9,10 @@ QT += opengl
 QT += network
 QT += declarative
 
+*-g++* {
+    QMAKE_CFLAGS += -w
+    QMAKE_CXXFLAGS += -w -fpermissive -Wunused-variable
+}
 
 #### App sources ####
 
