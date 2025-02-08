@@ -905,14 +905,18 @@ void UniverseView::paintEvent(QPaintEvent* /* event */)
     glPopAttrib();
 
     //if (GLEW_VERSION_1_5)
+#if QT_VERSION >= 0x050000
     {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+#endif
 
     //if (GLEW_VERSION_2_0)
+#if QT_VERSION >= 0x050000
     {
         glUseProgram(0);
     }
+#endif
 
     glShadeModel(GL_FLAT);
     glDisable(GL_CULL_FACE);
