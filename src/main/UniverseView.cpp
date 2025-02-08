@@ -1062,8 +1062,13 @@ static void drawArc(float fromAngle, float toAngle, float radius, const Vector2f
 void
 UniverseView::begin2DDrawing()
 {
-    int viewportWidth = size().width() * window()->devicePixelRatio();
-    int viewportHeight = size().height() * window()->devicePixelRatio();
+#if QT_VERSION >= 0x050000
+    float pixelScale = window()->devicePixelRatio();
+#else
+    float pixelScale = 1;
+#endif
+    int viewportWidth = size().width() * pixelScale;
+    int viewportHeight = size().height() * pixelScale;
     glViewport(0, 0, viewportWidth, viewportHeight);
 
     glDisable(GL_LIGHTING);
@@ -1155,8 +1160,13 @@ readableDistance(double km, unsigned int precision)
 void
 UniverseView::drawInfoOverlay()
 {
-    int viewportWidth = size().width() * window()->devicePixelRatio();
-    int viewportHeight = size().height() * window()->devicePixelRatio();
+#if QT_VERSION >= 0x050000
+    float pixelScale = window()->devicePixelRatio();
+#else
+    float pixelScale = 1;
+#endif
+    int viewportWidth = size().width() * pixelScale;
+    int viewportHeight = size().height() * pixelScale;
     glViewport(0, 0, viewportWidth, viewportHeight);
 
     glDisable(GL_LIGHTING);
@@ -1366,7 +1376,12 @@ UniverseView::drawInfoOverlay()
 
     if (m_markers)
     {
-        Viewport viewport(size().width() * devicePixelRatio(), size().height() * devicePixelRatio());
+    #if QT_VERSION >= 0x050000
+        float pixelScale = devicePixelRatio();
+    #else
+        float pixelScale = 1;
+    #endif
+        Viewport viewport(size().width() * pixelScale, size().height() * pixelScale);
         PlanarProjection projection = PlanarProjection::CreatePerspective(m_fovY, viewport.aspectRatio(), 1.0f, 100.0f);
         Vector3d observerPosition = m_observer->absolutePosition(m_simulationTime);
         Quaterniond observerOrientation = m_observer->absoluteOrientation(m_simulationTime);
@@ -1392,7 +1407,7 @@ UniverseView::drawInfoOverlay()
 
             centerMarker.setBody(centerBody);
             centerMarker.setColor(Spectrum(0.8f, 0.8f, 1.0f));
-            centerMarker.setSize(CenterMarkerSize * devicePixelRatio());
+            centerMarker.setSize(CenterMarkerSize * pixelScale);
             centerMarker.setStyle(Marker::Spin);
             centerMarker.setTargetSizeThreshold(CenterMarkerSize / 2.0f);
             centerMarker.setDirectionIndicatorEnabled(true);
@@ -1561,7 +1576,11 @@ void UniverseView::paintGL()
         glEnable(GL_MULTISAMPLE_ARB);
     }
 
+#if QT_VERSION >= 0x050000
     float pixelScale = window()->devicePixelRatio();
+#else
+    float pixelScale = 1;
+#endif
     Viewport mainViewport(size().width() * pixelScale, size().height() * pixelScale);
     LightingEnvironment lighting;
     if (m_reflectionsEnabled && m_reflectionMap.isValid())
