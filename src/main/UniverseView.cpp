@@ -99,7 +99,9 @@
 
 #include <QDebug>
 #include <QUrl>
+#if QT_VERSION >= 0x050000
 #include <QUrlQuery>
+#endif
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkDiskCache>
@@ -903,14 +905,18 @@ void UniverseView::paintEvent(QPaintEvent* /* event */)
     glPopAttrib();
 
     //if (GLEW_VERSION_1_5)
+#if QT_VERSION >= 0x050000
     {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+#endif
 
     //if (GLEW_VERSION_2_0)
+#if QT_VERSION >= 0x050000
     {
         glUseProgram(0);
     }
+#endif
 
     glShadeModel(GL_FLAT);
     glDisable(GL_CULL_FACE);
@@ -1056,8 +1062,13 @@ static void drawArc(float fromAngle, float toAngle, float radius, const Vector2f
 void
 UniverseView::begin2DDrawing()
 {
-    int viewportWidth = size().width() * window()->devicePixelRatio();
-    int viewportHeight = size().height() * window()->devicePixelRatio();
+#if QT_VERSION >= 0x050000
+    float pixelScale = window()->devicePixelRatio();
+#else
+    float pixelScale = 1;
+#endif
+    int viewportWidth = size().width() * pixelScale;
+    int viewportHeight = size().height() * pixelScale;
     glViewport(0, 0, viewportWidth, viewportHeight);
 
     glDisable(GL_LIGHTING);
@@ -1149,8 +1160,13 @@ readableDistance(double km, unsigned int precision)
 void
 UniverseView::drawInfoOverlay()
 {
-    int viewportWidth = size().width() * window()->devicePixelRatio();
-    int viewportHeight = size().height() * window()->devicePixelRatio();
+#if QT_VERSION >= 0x050000
+    float pixelScale = window()->devicePixelRatio();
+#else
+    float pixelScale = 1;
+#endif
+    int viewportWidth = size().width() * pixelScale;
+    int viewportHeight = size().height() * pixelScale;
     glViewport(0, 0, viewportWidth, viewportHeight);
 
     glDisable(GL_LIGHTING);
@@ -1360,7 +1376,12 @@ UniverseView::drawInfoOverlay()
 
     if (m_markers)
     {
-        Viewport viewport(size().width() * devicePixelRatio(), size().height() * devicePixelRatio());
+    #if QT_VERSION >= 0x050000
+        float pixelScale = devicePixelRatio();
+    #else
+        float pixelScale = 1;
+    #endif
+        Viewport viewport(size().width() * pixelScale, size().height() * pixelScale);
         PlanarProjection projection = PlanarProjection::CreatePerspective(m_fovY, viewport.aspectRatio(), 1.0f, 100.0f);
         Vector3d observerPosition = m_observer->absolutePosition(m_simulationTime);
         Quaterniond observerOrientation = m_observer->absoluteOrientation(m_simulationTime);
@@ -1386,7 +1407,7 @@ UniverseView::drawInfoOverlay()
 
             centerMarker.setBody(centerBody);
             centerMarker.setColor(Spectrum(0.8f, 0.8f, 1.0f));
-            centerMarker.setSize(CenterMarkerSize * devicePixelRatio());
+            centerMarker.setSize(CenterMarkerSize * pixelScale);
             centerMarker.setStyle(Marker::Spin);
             centerMarker.setTargetSizeThreshold(CenterMarkerSize / 2.0f);
             centerMarker.setDirectionIndicatorEnabled(true);
@@ -1555,7 +1576,11 @@ void UniverseView::paintGL()
         glEnable(GL_MULTISAMPLE_ARB);
     }
 
+#if QT_VERSION >= 0x050000
     float pixelScale = window()->devicePixelRatio();
+#else
+    float pixelScale = 1;
+#endif
     Viewport mainViewport(size().width() * pixelScale, size().height() * pixelScale);
     LightingEnvironment lighting;
     if (m_reflectionsEnabled && m_reflectionMap.isValid())
@@ -3968,12 +3993,19 @@ UniverseView::createBodyDirectionVisualizer(BodyObject* from, BodyObject* target
 QUrl
 UniverseView::getStateUrl()
 {
+
+#if QT_VERSION >= 0x050000
     QUrl url;
+    QUrlQuery query;
 
     url.setScheme("cosmo");
     url.setPath(bodyName(m_observer->center()));
+#else
+    QUrl query;
 
-    QUrlQuery query;
+    query.setScheme("cosmo");
+    query.setPath(bodyName(m_observer->center()));
+#endif
 
     double jd = secondsToDays(m_simulationTime) + vesta::J2000;
     Vector3d position = m_observer->position();
@@ -4037,9 +4069,13 @@ UniverseView::getStateUrl()
     query.addQueryItem("ts", QString::number(ts));
     query.addQueryItem("fov", QString::number(toDegrees(m_fovY)));
 
+#if QT_VERSION >= 0x050000
     url.setQuery(query);
 
     return url;
+#else
+    return query;
+#endif
 }
 
 
@@ -4070,7 +4106,11 @@ UniverseView::setStateFromUrl(const QUrl& url)
     Vector3d position = Vector3d::Zero();
     Quaterniond orientation = Quaterniond::Identity();
 
+#if QT_VERSION >= 0x050000
     QUrlQuery query(url.query());
+#else
+    QUrl query(url);
+#endif
     position.x() = query.queryItemValue("x").toDouble();
     position.y() = query.queryItemValue("y").toDouble();
     position.z() = query.queryItemValue("z").toDouble();
